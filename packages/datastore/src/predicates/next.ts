@@ -146,7 +146,9 @@ export class FieldCondition {
 				[this.operator]:
 					this.operator === 'between'
 						? [this.operands[0], this.operands[1]]
-						: this.operands[0],
+						: this.operator === 'in' || this.operator === 'notIn'
+							? this.operands[0] // Already an array
+							: this.operands[0],
 			},
 		};
 	}
@@ -220,10 +222,14 @@ export class FieldCondition {
 			between: () => v >= this.operands[0] && v <= this.operands[1],
 			in: () => {
 				const values = this.operands[0];
+
+				// Type guard ensures values is an array before checking inclusion
 				return Array.isArray(values) && values.includes(v);
 			},
 			notIn: () => {
 				const values = this.operands[0];
+
+				// Type guard ensures values is an array before checking exclusion
 				return Array.isArray(values) && !values.includes(v);
 			},
 		};
@@ -277,7 +283,7 @@ export class FieldCondition {
 			in: () => {
 				const countError = argumentCount(1)();
 				if (countError) return countError;
-				
+
 				const values = this.operands[0];
 				if (!Array.isArray(values)) {
 					return 'Operand must be an array.';
@@ -285,9 +291,11 @@ export class FieldCondition {
 				if (values.length === 0) {
 					return 'Operand array must not be empty.';
 				}
+
 				return null;
 			},
 			notIn: () => {
+				// Reuse the same validation as 'in' operator
 				return validations.in();
 			},
 		};

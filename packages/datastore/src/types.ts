@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { InternalAPI } from '@aws-amplify/api/internals';
-import { GraphQLAuthMode } from '@aws-amplify/core/internals/utils';
+import { GraphQLAuthMode } from '@aws-amplify/core';
 
 import { ModelInstanceCreator } from './datastore/datastore';
 import {
@@ -1340,7 +1340,9 @@ export type ValuePredicate<
 				inclusiveLowerBound: Scalar<MT>,
 				inclusiveUpperBound: Scalar<MT>,
 			) => PredicateInternalsKey
-		: (operand: Scalar<MT>) => PredicateInternalsKey;
+		: K extends 'in' | 'notIn'
+			? (operand: Scalar<MT>[]) => PredicateInternalsKey
+			: (operand: Scalar<MT>) => PredicateInternalsKey;
 };
 
 export type V5ModelPredicate<RT extends PersistentModel> = WithoutNevers<{
