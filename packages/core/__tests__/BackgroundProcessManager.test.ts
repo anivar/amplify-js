@@ -664,4 +664,21 @@ describe('BackgroundProcessManager', () => {
 		unblock?.();
 		await close;
 	});
+
+	test('close() resolves after timeout even if jobs never complete', async () => {
+		const manager = new BackgroundProcessManager();
+
+		manager.add(
+			() => new Promise<void>(() => {}),
+			'hanging job',
+		);
+
+		const start = Date.now();
+		await manager.close();
+		const elapsed = Date.now() - start;
+
+		expect(manager.isClosed).toBe(true);
+		// should resolve around the 10s internal timeout, not hang forever
+		expect(elapsed).toBeLessThan(15_000);
+	}, 20_000);
 });

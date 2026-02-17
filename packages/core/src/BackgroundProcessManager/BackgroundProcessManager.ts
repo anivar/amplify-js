@@ -389,7 +389,19 @@ export class BackgroundProcessManager {
 				Array.from(this.jobs).map(j => j.promise),
 			);
 
+			const CLOSE_TIMEOUT_MS = 10_000;
+			let timer: ReturnType<typeof setTimeout>;
+			const timeoutPromise = new Promise<PromiseSettledResult<any>[]>(
+				resolve => {
+					timer = setTimeout(() => resolve([]), CLOSE_TIMEOUT_MS);
+				},
+			);
+			this._closingPromise = Promise.race([
+				this._closingPromise,
+				timeoutPromise,
+			]);
 			await this._closingPromise;
+			clearTimeout(timer!);
 			this._state = BackgroundProcessManagerState.Closed;
 		}
 
